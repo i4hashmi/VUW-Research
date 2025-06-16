@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Script to calculate the center of mass (CoM), center of charge (CoP for Mulliken, ESP, and NBO charges) of a molecule from an XYZ/log file,
-then calculate the dipole moment from different charges, and write a new XYZ file with the CoM added as a pseudo-atom 'X'.
+Script to calculate the center of mass (CoM), center of charge (CoP for ESP and NBO charges) of a molecule from a Gaussian log file,
+then calculate the dipole moment from different charges, and write a new XYZ file with the CoM added as a pseudo-atom 'X'. 
+It can also calculate the dipole moment with respect to the centre of a five-membered ring if present in the molecule.
 Script by Dr. Muhammad Ali Hashmi (09/06/2025)
 """
 
