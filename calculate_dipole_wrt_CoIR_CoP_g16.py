@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 """
-Script to calculate the center of mass (CoM), center of charge (CoP for ESP and NBO charges) of a molecule from a Gaussian log file,
-then calculate the dipole moment from different charges, and write a new XYZ file with the CoM added as a pseudo-atom 'X'. 
-It can also calculate the dipole moment with respect to the centre of a five-membered ring if present in the molecule.
-Script by Dr. Muhammad Ali Hashmi (09/06/2025)
+Script to calculate the center of mass (CoM), center of charge (CoP for Mulliken, ESP, and NBO charges) of a molecule from an XYZ/log file,
+then calculate the dipole moment from different charges, and write a new XYZ file with the CoM added as a pseudo-atom 'X'.
+Script by Dr. Muhammad Ali Hashmi (26/06/2025)
 """
 
 import numpy as np
@@ -170,14 +169,18 @@ def write_dipole_vector(origin, dipole_vector, scale=1.0, outname='dipole_vec.xy
     'scale' adjusts arrow length in Å for visualization.
     """
     tip = origin + dipole_vector * scale
+    total_atoms = len(atoms) + 2
     with open(outname, 'w') as f:
-        f.write("2\ndipole vector\n")
+        f.write(f"{total_atoms}\nDipole vector with full molecule\n")
+        for atom in atoms:
+            f.write(f"{atom[0]} {atom[1]:.6f} {atom[2]:.6f} {atom[3]:.6f}\n")
         f.write(f"X {origin[0]:.6f} {origin[1]:.6f} {origin[2]:.6f}\n")
         f.write(f"Y {tip[0]:.6f} {tip[1]:.6f} {tip[2]:.6f}\n")
-    print(f"✅ Dipole vector file written: {outname}")
+
+    print(f"✅ Dipole vector + molecule XYZ written: {outname}")
 
 ### Function to write the Center of Imidazole Ring with molecule as a dummy atom X as an xyz file
-def write_xyz_with_imid_center(atoms, com, outname='molecule_with_imid_center.xyz'):
+def write_xyz_with_imid_center(atoms, imid_center, outname='molecule_with_imid_center.xyz'):
     with open(outname, 'w') as f:
         f.write(f"{len(atoms)+1}\nXYZ with CoIR as X\n")
         for atom in atoms:
@@ -269,11 +272,11 @@ if __name__ == "__main__":
         if esp:
             mu_esp_ring = compute_dipole(atoms, esp, imid_center) ## Compute dipole from center of ring
             if mu_esp_ring is not None:
-                write_dipole_vector(imid_center, mu_esp_ring,scale=1.5,outname=base + "_esp_dipole_vec.xyz")
+                write_dipole_vector(imid_center, mu_esp_ring,scale=1.5,outname=base + "_CoIR_esp_dipole_vec.xyz")
         if nbo:
             mu_nbo_ring = compute_dipole(atoms, nbo, imid_center)
             if mu_nbo_ring is not None: ## Write dipole vector as X and Y dummy atoms
-                write_dipole_vector(imid_center, mu_nbo_ring,scale=1.5,outname=base + "_nbo_dipole_vec.xyz")
+                write_dipole_vector(imid_center, mu_nbo_ring,scale=1.5,outname=base + "_CoIR_nbo_dipole_vec.xyz")
             
     with open(txt_outname, 'w') as f:
         with redirect_stdout(f):
@@ -336,4 +339,7 @@ if __name__ == "__main__":
 
     # Write XYZ file
     write_xyz_with_com(atoms, com, xyz_outname)
-    write_xyz_with_imid_center(atoms, com, xyz2_outname)
+    if imid_center is not None:
+        write_xyz_with_imid_center(atoms, imid_center, xyz2_outname)
+    else:
+        print("⚠️ Skipping XYZ with Imidazole center: No ring found.")
